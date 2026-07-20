@@ -411,6 +411,11 @@
                 00:00
             </div>
 
+            <!-- Alarm placeholder: Replace the src with your own audio file path -->
+            <audio id="alarmSound" loop>
+                <source src="bells.mp3" type="audio/mpeg">
+            </audio>
+
             <!-- Action Buttons -->
             <div class="flex flex-col gap-3 w-full mt-4">
                 <button id="rollBtn" class="btn-primary">
@@ -655,7 +660,6 @@
                 timerDisplayEl.classList.add('active');
                 timerDisplayEl.classList.remove('timer-pulse');
 
-                // Hide dice to focus on timer
                 diceAreaEl.classList.add('hidden');
 
                 resultDisplayEl.innerHTML += "<br><span class='text-sm text-gray-400 mt-2 block'>Perform the action until time runs out!</span>";
@@ -673,6 +677,10 @@
                         isTimerActive = false;
                         timerDisplayEl.classList.remove('timer-pulse');
 
+                        // Play alarm sound
+                        const alarm = document.getElementById('alarmSound');
+                        alarm.play().catch(e => console.log("Audio playback requires user interaction."));
+
                         // Time's up state
                         resultDisplayEl.innerHTML = "<span class='text-xl font-bold text-[#ff416c]'>Time's Up!</span>";
                         nextPlayerBtn.classList.remove('hidden');
@@ -681,6 +689,11 @@
             }
 
             function nextTurn() {
+                // Stop alarm
+                const alarm = document.getElementById('alarmSound');
+                alarm.pause();
+                alarm.currentTime = 0;
+
                 // Toggle player index (0 -> 1 -> 0)
                 currentPlayerIndex = (currentPlayerIndex + 1) % 2;
                 resetGameUI();
