@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intimate Dice Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg-color-start: #1f1c2c;
+            --bg-color-end: #928dab;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --primary-accent: #ff416c;
+            --secondary-accent: #ff4b2b;
+            --text-main: #f8f8f2;
+            --man-color: #a1c4fd;
+            --woman-color: #ff9a9e;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-color-start) 0%, var(--bg-color-end) 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-main);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border);
+            text-align: center;
+            width: 100%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(to right, #ff758c 0%, #ff7eb3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            width: 100%;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .timer-inputs {
+            display: flex;
+            gap: 10px;
+        }
+
+        .styled-input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .styled-input:focus {
+            outline: none;
+            border-color: var(--primary-accent);
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 10px rgba(255, 65, 108, 0.2);
+        }
+
+        .styled-input option {
+            background: #2a2638;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-accent), var(--secondary-accent));
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 75, 43, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-secondary {
+             background: rgba(255,255,255,0.1);
+             border: 1px solid rgba(255,255,255,0.2);
+             margin-top: 1rem;
+        }
+        .btn-secondary:hover {
+             background: rgba(255,255,255,0.2);
+             box-shadow: none;
+        }
+
+        .player-indicator {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: color 0.3s;
+        }
+
+        .turn-woman { color: var(--woman-color); }
+        .turn-man { color: var(--man-color); }
+
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+            perspective: 1000px;
+        }
+
+        .die {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-accent);
+            box-shadow:
+                5px 5px 15px rgba(0,0,0,0.3),
+                -2px -2px 10px rgba(255,255,255,0.2),
+                inset 2px 2px 5px rgba(255,255,255,0.5);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+            transition: transform 0.1s;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .die::before {
+            content: '';
+            position: absolute;
+            top: 4px; left: 4px; right: 4px; bottom: 4px;
+            border: 2px solid rgba(255, 75, 139, 0.15);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+
+        .rolling {
+            animation: rollAnimation 0.9s ease-in-out;
+        }
+
+        @keyframes rollAnimation {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            25% { transform: scale(1.1) rotate(15deg); opacity: 0.8; }
+            50% { transform: scale(0.9) rotate(-15deg); opacity: 0.6; }
+            75% { transform: scale(1.1) rotate(10deg); opacity: 0.8; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .scrambling {
+            animation: scrambleText 0.1s linear infinite;
+        }
+
+        @keyframes scrambleText {
+            0% { filter: blur(0px); opacity: 1;}
+            50% { filter: blur(2px); opacity: 0.5;}
+            100% { filter: blur(0px); opacity: 1;}
+        }
+
+        .result-text {
+            min-height: 50px;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+            line-height: 1.4;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            margin: 1rem 0;
+            display: none;
+            transition: color 0.3s ease;
+        }
+
+        .timer-display.active {
+            display: block;
+            color: var(--text-main);
+        }
+
+        .timer-pulse {
+            color: #ff3333 !important;
+            animation: timePulse 1s ease-in-out infinite;
+        }
+
+        @keyframes timePulse {
+            0% { transform: scale(1); text-shadow: 0 0 10px rgba(255, 51, 51, 0.4); }
+            50% { transform: scale(1.08); text-shadow: 0 0 20px rgba(255, 51, 51, 0.8); }
+            100% { transform: scale(1); text-shadow: 0 0 10px rgba(255, 51, 51, 0.4); }
+        }
+
+            @keyframes float {
+                0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
+                10% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { transform: translateY(-100px) scale(1.5) rotate(360deg); opacity: 0; }
+            }
+
+            .floating-heart {
+                position: fixed;
+                bottom: -100px;
+                color: rgba(255, 255, 255, 0.1);
+                animation: float 15s linear infinite;
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            /* Hide elements utility */
+            .hidden { display: none !important; }
+
+            /* Responsive Adjustments */
+            @media (max-width: 480px) {
+                body { padding: 0.5rem; }
+                .card-container {
+                    padding: 1.5rem 1.25rem;
+                    border-radius: 20px;
+                }
+                .die {
+                    width: 85px;
+                    height: 85px;
+                    font-size: 0.95rem;
+                }
+                .dice-container { gap: 1rem; margin: 1rem 0; }
+                .timer-display { font-size: 3rem; margin: 1rem 0; }
+                .btn-primary {
+                    padding: 0.8rem 1.5rem;
+                    font-size: 1.1rem;
+                }
+                .player-indicator { font-size: 1.25rem; margin-bottom: 1rem; }
+                .result-text { font-size: 1rem; min-height: 40px; }
+            }
+
+            @media (max-width: 360px) {
+                .die {
+                    width: 75px;
+                    height: 75px;
+                    font-size: 0.85rem;
+                }
+                .timer-inputs {
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .btn-primary { font-size: 1rem; }
+                .card-container { padding: 1.25rem 1rem; }
+            }
+
+        </style>
+    </head>
+<body>
+
+    <i class="fa-solid fa-heart floating-heart" style="left: 10%; animation-duration: 12s; font-size: 2rem;"></i>
+    <i class="fa-solid fa-droplet floating-heart" style="left: 30%; animation-duration: 15s; animation-delay: 2s; font-size: 3rem;"></i>
+    <i class="fa-solid fa-fire floating-heart" style="left: 60%; animation-duration: 10s; animation-delay: 5s; font-size: 1.5rem;"></i>
+    <i class="fa-solid fa-heart floating-heart" style="left: 80%; animation-duration: 18s; animation-delay: 1s; font-size: 2.5rem;"></i>
+
+
+    <div id="setupScreen" class="screen active">
+        <div class="card-container">
+            <h1 class="text-3xl sm:text-4xl">Intimate Dice</h1>
+            <p class="mb-4 sm:mb-6 text-gray-300 font-light text-xs sm:text-sm">Set up your game before playing.</p>
+
+            <div class="input-group">
+                <label for="player1Gender">Player 1 Gender (Plays First):</label>
+                <select id="player1Gender" class="styled-input">
+                    <option value="woman" selected>Woman</option>
+                    <option value="man">Man</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="player2Gender">Player 2 Gender:</label>
+                <select id="player2Gender" class="styled-input">
+                    <option value="man" selected>Man</option>
+                    <option value="woman">Woman</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Action Timer Duration:</label>
+                <div class="timer-inputs">
+                    <div style="flex: 1;">
+                        <input type="number" id="timeMinutes" class="styled-input" min="0" max="60" value="0" placeholder="Min">
+                        <span class="text-xs text-gray-400 mt-1 block">Minutes</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="number" id="timeSeconds" class="styled-input" min="0" max="59" value="30" placeholder="Sec">
+                        <span class="text-xs text-gray-400 mt-1 block">Seconds</span>
+                    </div>
+                </div>
+            </div>
+
+            <button id="startBtn" class="btn-primary mt-4">
+                <i class="fa-solid fa-play mr-2"></i> Start Game
+            </button>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <div class="card-container">
+            <!-- Player Turn Indicator -->
+            <div id="playerTurn" class="player-indicator">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Dice Container -->
+            <div class="dice-container" id="diceArea">
+                <!-- Action Die -->
+                <div id="dieAction" class="die">
+                    <span id="actionText">Ready</span>
+                </div>
+                <!-- Body Part Die -->
+                <div id="dieBodyPart" class="die">
+                    <span id="bodyPartText">Ready</span>
+                </div>
+            </div>
+
+            <!-- Result/Instruction Text -->
+            <div id="resultDisplay" class="result-text">
+                Waiting for roll...
+            </div>
+
+            <!-- Timer Display -->
+            <div id="timerDisplay" class="timer-display">
+                00:00
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-3 w-full mt-4">
+                <button id="rollBtn" class="btn-primary">
+                    <i class="fa-solid fa-dice mr-2"></i> Roll Dice
+                </button>
+                <button id="nextPlayerBtn" class="btn-primary btn-secondary hidden">
+                     Next Player <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+                <button id="backBtn" class="text-gray-400 text-sm mt-4 hover:text-white transition">
+                    <i class="fa-solid fa-gear mr-1"></i> Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Configuration & Data ---
+            const GENDERS = {
+                WOMAN: 'woman',
+                MAN: 'man'
+            };
+
+            const DICE_CONFIG = {
+                [GENDERS.MAN]: {
+                    actions: ["Lick / Kiss", "Suck", "Fuck", "?"],
+                    bodyParts: ["Breast", "Pussy", "Ass / Mouth", "?"]
+                },
+                [GENDERS.WOMAN]: {
+                    actions: ["Suck", "Kiss", "Ride", "?"],
+                    bodyParts: ["Dick", "Mouth", "Nipples", "?"]
+                }
+            };
+
+            // --- State Variables ---
+            let players = [
+                { id: 1, gender: null, name: "Player 1" },
+                { id: 2, gender: null, name: "Player 2" }
+            ];
+            let currentPlayerIndex = 0; // 0 for Player 1, 1 for Player 2
+            let timerDurationSeconds = 0;
+            let timerInterval = null;
+            let transitionTimeout = null;
+            let isRolling = false;
+            let isTimerActive = false;
+
+            // --- DOM Elements - Screens ---
+            const setupScreen = document.getElementById('setupScreen');
+            const gameScreen = document.getElementById('gameScreen');
+
+            // --- DOM Elements - Setup ---
+            const p1GenderSelect = document.getElementById('player1Gender');
+            const p2GenderSelect = document.getElementById('player2Gender');
+            const minInput = document.getElementById('timeMinutes');
+            const secInput = document.getElementById('timeSeconds');
+            const startBtn = document.getElementById('startBtn');
+            const backBtn = document.getElementById('backBtn');
+
+            // --- DOM Elements - Game ---
+            const playerTurnEl = document.getElementById('playerTurn');
+            const dieActionEl = document.getElementById('dieAction');
+            const dieBodyPartEl = document.getElementById('dieBodyPart');
+            const actionTextEl = document.getElementById('actionText');
+            const bodyPartTextEl = document.getElementById('bodyPartText');
+            const rollBtn = document.getElementById('rollBtn');
+            const nextPlayerBtn = document.getElementById('nextPlayerBtn');
+            const resultDisplayEl = document.getElementById('resultDisplay');
+            const timerDisplayEl = document.getElementById('timerDisplay');
+            const diceAreaEl = document.getElementById('diceArea');
+
+
+
+            function getPlayerClass(gender) {
+                return gender === GENDERS.WOMAN ? 'turn-woman' : 'turn-man';
+            }
+
+            function getPlayerIcon(gender) {
+                return gender === GENDERS.WOMAN ? 'fa-venus' : 'fa-mars';
+            }
+
+            function formatTime(totalSeconds) {
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+
+            function getRandomSide(sidesArray) {
+                return sidesArray[Math.floor(Math.random() * sidesArray.length)];
+            }
+
+
+            function startGame() {
+                // Read setup values
+                players[0].gender = p1GenderSelect.value;
+                players[1].gender = p2GenderSelect.value;
+
+                // Format names based on gender for flavor, or keep as Player 1/2
+                players[0].name = players[0].gender === GENDERS.WOMAN ? "Woman" : "Man";
+                players[1].name = players[1].gender === GENDERS.WOMAN ? "Woman" : "Man";
+
+                // If both select same gender, append numbers to distinguish
+                if(players[0].gender === players[1].gender) {
+                    players[0].name += " 1";
+                    players[1].name += " 2";
+                }
+
+                const mins = parseInt(minInput.value) || 0;
+                const secs = parseInt(secInput.value) || 0;
+                timerDurationSeconds = (mins * 60) + secs;
+
+                if (timerDurationSeconds <= 0) {
+                    alert("Please set a timer duration greater than 0.");
+                    return;
+                }
+
+                // Initialize Game State
+                currentPlayerIndex = 0; // P1 always starts
+                resetGameUI();
+                updateTurnUI();
+
+                // Switch Screens
+                setupScreen.classList.remove('active');
+                gameScreen.classList.add('active');
+            }
+
+            function resetGameUI() {
+                clearInterval(timerInterval);
+                clearTimeout(transitionTimeout);
+                isTimerActive = false;
+                timerDisplayEl.classList.remove('active', 'timer-pulse');
+                timerDisplayEl.textContent = formatTime(timerDurationSeconds);
+
+                actionTextEl.textContent = "Ready";
+                bodyPartTextEl.textContent = "Ready";
+                resultDisplayEl.innerHTML = "Roll the dice to get your action.";
+
+                rollBtn.classList.remove('hidden');
+                rollBtn.disabled = false;
+                nextPlayerBtn.classList.add('hidden');
+                diceAreaEl.classList.remove('hidden');
+            }
+
+            function updateTurnUI() {
+                const currentPlayer = players[currentPlayerIndex];
+                const pClass = getPlayerClass(currentPlayer.gender);
+                const iconClass = getPlayerIcon(currentPlayer.gender);
+
+                playerTurnEl.innerHTML = `<i class="fa-solid ${iconClass}"></i> ${currentPlayer.name}'s Turn`;
+                playerTurnEl.className = `player-indicator ${pClass}`;
+            }
+
+
+            function rollDice() {
+                if (isRolling) return;
+
+                const currentPlayer = players[currentPlayerIndex];
+                const availableActions = DICE_CONFIG[currentPlayer.gender].actions;
+                const availableParts = DICE_CONFIG[currentPlayer.gender].bodyParts;
+
+                isRolling = true;
+                rollBtn.disabled = true;
+                resultDisplayEl.textContent = "Rolling...";
+
+                // Add animation classes
+                dieActionEl.classList.add('rolling');
+                dieBodyPartEl.classList.add('rolling');
+                actionTextEl.classList.add('scrambling');
+                bodyPartTextEl.classList.add('scrambling');
+
+                // Visual effect: rapidly change text while rolling
+                let scrambleInterval = setInterval(() => {
+                    actionTextEl.textContent = getRandomSide(availableActions);
+                    bodyPartTextEl.textContent = getRandomSide(availableParts);
+                }, 50);
+
+                // Stop rolling after set time
+                setTimeout(() => {
+                    clearInterval(scrambleInterval);
+
+                    dieActionEl.classList.remove('rolling');
+                    dieBodyPartEl.classList.remove('rolling');
+                    actionTextEl.classList.remove('scrambling');
+                    bodyPartTextEl.classList.remove('scrambling');
+
+                    // Determine final results
+                    let finalAction = getRandomSide(availableActions);
+                    let finalBodyPart = getRandomSide(availableParts);
+
+                    // Apply special condition for Woman: Ride + Nipples -> Suck
+                    if (currentPlayer.gender === GENDERS.WOMAN && finalAction === "Ride" && finalBodyPart === "Nipples") {
+                        finalAction = "Suck";
+                    }
+
+                    // Update UI with results
+                    actionTextEl.textContent = finalAction;
+                    if (finalAction === "?") {
+                         actionTextEl.innerHTML = '<i class="fa-solid fa-question text-gray-400"></i>';
+                    }
+
+                    bodyPartTextEl.textContent = finalBodyPart;
+                    if (finalBodyPart === "?") {
+                         bodyPartTextEl.innerHTML = '<i class="fa-solid fa-question text-gray-400"></i>';
+                    }
+
+                    // Construct result sentence
+                    let actionDesc = finalAction === "?" ? "Choose an action for" : finalAction;
+                    let partDesc = finalBodyPart === "?" ? "a body part of your choice" : finalBodyPart;
+
+                    let resultSentence = `<strong>${currentPlayer.name}</strong> must: <strong>${actionDesc}</strong> `;
+
+                    if (finalBodyPart === "?" || finalBodyPart.includes(" / ")) {
+                         resultSentence += `<strong>${partDesc}</strong>`;
+                    } else {
+                         // Simple article handling
+                         let article = (finalBodyPart === "Ass" || finalBodyPart === "Ass / Mouth") ? "the" : "the";
+                    resultSentence += `<strong>${article} ${partDesc}</strong>`;
+                    }
+
+                    resultDisplayEl.innerHTML = resultSentence;
+
+                    isRolling = false;
+
+                    // Hide Roll button, then wait a few seconds before starting the timer
+                    rollBtn.classList.add('hidden');
+
+                    transitionTimeout = setTimeout(() => {
+                        startTimer();
+                    }, 3500); // 3.5 second delay to read the result
+
+                }, 800);
+            }
+
+            function startTimer() {
+                if (isTimerActive) return;
+
+                isTimerActive = true;
+                let timeLeft = timerDurationSeconds;
+
+                timerDisplayEl.textContent = formatTime(timeLeft);
+                timerDisplayEl.classList.add('active');
+                timerDisplayEl.classList.remove('timer-pulse');
+
+                // Hide dice to focus on timer
+                diceAreaEl.classList.add('hidden');
+
+                resultDisplayEl.innerHTML += "<br><span class='text-sm text-gray-400 mt-2 block'>Perform the action until time runs out!</span>";
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplayEl.textContent = formatTime(timeLeft);
+
+                    if (timeLeft <= 10 && timeLeft > 0) {
+                        timerDisplayEl.classList.add('timer-pulse');
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerActive = false;
+                        timerDisplayEl.classList.remove('timer-pulse');
+
+                        // Time's up state
+                        resultDisplayEl.innerHTML = "<span class='text-xl font-bold text-[#ff416c]'>Time's Up!</span>";
+                        nextPlayerBtn.classList.remove('hidden');
+                    }
+                }, 1000);
+            }
+
+            function nextTurn() {
+                // Toggle player index (0 -> 1 -> 0)
+                currentPlayerIndex = (currentPlayerIndex + 1) % 2;
+                resetGameUI();
+                updateTurnUI();
+            }
+
+            // --- Event Listeners ---
+            startBtn.addEventListener('click', startGame);
+            rollBtn.addEventListener('click', rollDice);
+            nextPlayerBtn.addEventListener('click', nextTurn);
+
+            backBtn.addEventListener('click', () => {
+                // Stop any running game processes
+                clearInterval(timerInterval);
+                clearTimeout(transitionTimeout);
+                isTimerActive = false;
+
+                // Switch Screens back to setup
+                gameScreen.classList.remove('active');
+                setupScreen.classList.add('active');
+            });
+
+        });
+    </script>
+</body>
+</html>
